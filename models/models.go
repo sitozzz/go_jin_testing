@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 var db *gorm.DB
@@ -23,6 +24,9 @@ func Setup() {
 		settings.DatabaseSetting.Password,
 		settings.DatabaseSetting.Host,
 		settings.DatabaseSetting.Name))
+
+	db.AutoMigrate(&Auth{})
+
 	if err != nil {
 		log.Fatal("models.Setup error: %v", err)
 	}
