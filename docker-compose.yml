@@ -3,15 +3,25 @@ version: "3.7"
 services:
   db:
     restart: 'unless-stopped'
-    image: mysql:5.7
+    image: postgres:10
     ports:
-      - ${DB_PORT}:3306
-    environment:
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      - 5432:5432
     volumes:
-      - db-storage:/var/lib/mysql
+      - db-storage:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      command: postgres -c shared_buffers=512MB -c effective_cache_size=1536MB -c work_mem=2621kB -c maintenance_work_mem=128MB
+      shm_size: '1gb'
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d postgres -U root"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   redis:
     restart: 'unless-stopped'
     image: redis:6.2
@@ -26,7 +36,7 @@ services:
       - 8000:8000
     depends_on:
       db:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_started
 
